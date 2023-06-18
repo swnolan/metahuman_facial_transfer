@@ -2,9 +2,11 @@
 
 # Export FBX Data from Unreal
 * Export FBX Facial animation out from Unreal Sequencer
-* Select the "Face Track" and not the "Facial Control Rig Board"
+* Select the "Face Track" and not the "Face_ControlBoard_CtrlRig" track
+![Screenshot](./images/bake_facial_animation.png)
 * Bake keys down onto the Control rig
 * Select the track and Export FBX
+![Screenshot](./images/export_fbx_file.png)
 
 # Install:
 * Download script and place somewehere in your MAYA_PYTHON_PATH or maya/<year>/scripts folder
