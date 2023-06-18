@@ -1,6 +1,6 @@
 # Metahuman Facial Animation Utils
-# Import and transfer FBX facial animation from Metahuman face control board exportef from Unreal 
-
+# Import and transfer FBX facial animation from Metahuman face control board exportef from Unreal
+ 
 import pymel.core as pm
 import logging
 
