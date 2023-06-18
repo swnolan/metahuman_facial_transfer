@@ -27,10 +27,10 @@ def import_metahuman_animation():
 	if file_path:
 		transfer_metahuman_animation_data(file_path[0], selection[0].namespace())
 	
-	pm.confirmDialog(title='Transfer Complete',
-	                 message='Animation Transferred!',
-	                 icon='information',
-	                 button=['Ok'])
+		pm.confirmDialog(title='Transfer Complete',
+		                 message='Animation Transferred!',
+		                 icon='information',
+		                 button=['Ok'])
 	
 		
 def transfer_metahuman_animation_data(fbx_path, current_namespace=None):
