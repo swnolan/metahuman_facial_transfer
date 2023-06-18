@@ -1,5 +1,10 @@
 # Metahuman Facial Transfer
 
+Maya Python code that will reference in previously exported FBX animation from Unreal.
+The code will copy these attribute keys from the referenced transform node over to the Metahuman Face board controls.
+The referenced file is then removed once completed.
+
+
 # Export FBX Data from Unreal
 * Export FBX Facial animation out from Unreal Sequencer
 * Select the "Face Track" and not the "Face_ControlBoard_CtrlRig" track
@@ -19,3 +24,5 @@
 import metahuman_facial_transfer
 metahuman_facial_transfer.import_metahuman_animation()
 ```
+
+Free to use personally or commercially. 
