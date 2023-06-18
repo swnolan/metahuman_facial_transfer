@@ -14,7 +14,7 @@ The referenced file is then removed once completed.
 ![Screenshot](./images/export_fbx_file.png)
 
 # Install:
-* Download script and place somewehere in your MAYA_PYTHON_PATH or maya/<year>/scripts folder
+* Download script and place somewehere in your MAYA_PYTHON_PATH or maya/scripts folder
 
 # Usage:
 * Open/Reference/Import your Metahuman rig into the scene
