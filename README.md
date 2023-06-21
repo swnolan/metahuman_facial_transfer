@@ -9,8 +9,13 @@ The referenced file is then removed once completed.
 
 ![](https://github.com/swnolan/metahuman_facial_transfer/blob/main/images/metahuman_facial_transfer.gif)
 
-# References:
-* [Refer to Unreal's documentation for exporting Unreal assets to Maya]( https://dev.epicgames.com/documentation/en-us/metahuman/exporting-metahumans-to-maya)
+# Tutorial
+[![Tutorial](https://img.youtube.com/vi/2sMULd2rPTs/0.jpg)](https://youtu.be/2sMULd2rPTs)
+
+
+# Reference links:
+* [Exporting a MetaHuman to Maya]( https://dev.epicgames.com/documentation/en-us/metahuman/exporting-metahumans-to-maya)
+* [How to Use MetaHuman Animator in Unreal Engine](https://dev.epicgames.com/community/learning/tutorials/eKbY/how-to-use-metahuman-animator-in-unreal-engine)
 
 
 # Export FBX Data from Unreal
