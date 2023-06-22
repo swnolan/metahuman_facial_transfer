@@ -1,6 +1,17 @@
-# Metahuman Facial Animation Utils 
-# Import and transfer FBX facial animation from Metahuman face control board exportef from Unreal
- 
+# Metahuman Facial Animation Transfer
+# Import and transfer FBX facial animation from Metahuman face control board exported from Unreal
+#
+# Installation/Usage:
+#   * Place script anywhere in your MAYA_PYTHON_PATH or in Documents/maya/2020+/scripts folder
+#   * Import, Reference or Open your Metahuman Maya file that has the face control board in the scene
+#   * Open up the Maya script editor (Python)
+#   * Select a control on the face rig and run code:
+#
+#   import metahuman_facial_transfer
+#   metahuman_facial_transfer.import_metahuman_animation()
+#
+
+
 import pymel.core as pm
 import logging
 
@@ -42,7 +53,7 @@ def transfer_metahuman_animation_data(fbx_path, current_namespace=None):
 	'''
 	nodes = pm.createReference(fbx_path, namespace=':', returnNewNodes=True)
 	if not nodes:
-		raise RuntimeError(f'{fbx_path} is an empty file!')
+		raise RuntimeError('{} is an empty file!'.format(fbx_path))
 	
 	control_board = None
 	for node in pm.ls(nodes):
@@ -69,11 +80,11 @@ def transfer_metahuman_animation_data(fbx_path, current_namespace=None):
 					driven_channel = 'translateY'
 				control_name = attr_name[:index]
 				if current_namespace:
-					control_name = f'{current_namespace}{control_name}'
+					control_name = '{}{}'.format(current_namespace, control_name)
 				result = (control_name, driven_channel)
 			else:
 				if current_namespace:
-					control_name = f'{current_namespace}{attr_name}'
+					control_name = '{}{}'.format(current_namespace,attr_name)
 				else:
 					control_name = attr_name
 				result = (control_name, 'translateY')
@@ -81,14 +92,14 @@ def transfer_metahuman_animation_data(fbx_path, current_namespace=None):
 	
 	for driver_attr, (control_name, channel) in keyed_attributes.items():
 		if pm.objExists(control_name):
-			driven_attr = pm.Attribute(f'{control_name}.{channel}')
+			driven_attr = pm.Attribute('{}.{}'.format(control_name, channel))
 			if driven_attr.isFreeToChange() == pm.Attribute.FreeToChangeState.freeToChange:
 				copied = pm.copyKey(driver_attr)
 				if copied:
 					try:
 						pm.pasteKey(driven_attr)
 					except RuntimeError:
-						logger.error(f'Failed to paste keys to {driven_attr}')
+						logger.error('Failed to paste keys to {}'.format(driven_attr))
 	
 	# Cleanup
 	for node in pm.ls(nodes, type=pm.nt.Reference):
