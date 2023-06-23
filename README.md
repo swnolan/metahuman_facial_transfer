@@ -6,6 +6,8 @@ The code will copy these attribute keys from the referenced transform node over 
 The referenced file is then removed once completed.
 
 ### Note: This was built and tested using Maya 2022 running Python 3.7 using latest assets from Unreal 5.2.
+### Maya 2023+ users: 
+### The FBX data coming from Unreal 5 is incompatible with Maya 2023. Investigating! 
 
 ![](https://github.com/swnolan/metahuman_facial_transfer/blob/main/images/metahuman_facial_transfer.gif)
 
