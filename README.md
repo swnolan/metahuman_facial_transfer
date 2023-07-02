@@ -5,11 +5,9 @@ Maya Python code that will reference in previously exported FBX animation from U
 The code will copy these attribute keys from the referenced transform node over to the Metahuman Face board controls.
 The referenced file is then removed once completed.
 
-### Note: This was built and tested using Maya 2022.4 and 2022.5 running Python 3.7 using latest assets from Unreal 5.2.
-### The FBX data coming from Unreal 5 is incompatible with Maya 2023.
-### To confirm the animation data will work with your version of Maya and Maya FBX importer version (2020.2), open up the sample FBX provided in the project and if you see keyframe data exists on the transforms attributes. If not, then your version/cut of Maya is not supported with this code at this time.
+### Newly updated to Support Unreal 4.27-5.2 & Maya 2020-2023
 
-![](https://github.com/swnolan/metahuman_facial_transfer/blob/main/images/metahuman_facial_transfer.gif)
+![Screenshot](./images/mh_to_maya.png)
 
 # Tutorial
 [![Tutorial](https://img.youtube.com/vi/2sMULd2rPTs/0.jpg)](https://youtu.be/2sMULd2rPTs)
@@ -21,12 +19,19 @@ The referenced file is then removed once completed.
 
 
 # Export FBX Data from Unreal
-* Export FBX Facial animation out from Unreal Sequencer
-* Select the "Face Track" and not the "Face_ControlBoard_CtrlRig" track
-![Screenshot](./images/bake_facial_animation.png)
-* Bake keys down onto the Control rig
-* Select the track and Export FBX
-![Screenshot](./images/export_fbx_file.png)
+* Export FBX Facial animation out from Unreal Level Sequencer
+* Select the "Face" Track
+![Screenshot](./images/1_anim_seq_export.png)
+* Bake Animation Sequence
+* Save File to a folder
+![Screenshot](./images/2_anim_seq_export_name.png)
+* Animation Sequence export options
+![Screenshot](./images/3_anim_seq_export_options.png)
+* Navigate to new Animation Sequence file and export FBX
+![Screenshot](./images/4_anim_seq_export_file.png)
+* FBX Export options
+![Screenshot](./images/5_fbx_export_options.png)
+
 
 # Install:
 * Download script and place somewehere in your MAYA_PYTHON_PATH or maya/scripts folder
@@ -34,11 +39,10 @@ The referenced file is then removed once completed.
 
 # Usage:
 * Open/Reference/Import your Metahuman rig into the scene
-* Select a face control on the rig
-* Run Code in Maya Python Editor and use provided sample FBX or your own:
+* Run Code in Maya Python Editor:
 ```
 import metahuman_facial_transfer
-metahuman_facial_transfer.import_metahuman_animation()
+metahuman_facial_transfer.UI()
 ```
 
 Free to use personally or commercially. 
