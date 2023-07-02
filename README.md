@@ -10,7 +10,7 @@ The referenced file is then removed once completed.
 ![Screenshot](./images/mh_to_maya.png)
 
 # Tutorial
-[![Tutorial](https://img.youtube.com/vi/2sMULd2rPTs/0.jpg)](https://youtu.be/2sMULd2rPTs)
+[![Tutorial](https://youtu.be/2sMULd2rPTs/0.jpg)](https://youtu.be/2sMULd2rPTs)
 
 
 # Reference links:
