@@ -20,15 +20,24 @@ The referenced file is then removed once completed.
 # Export FBX Data from Unreal
 * Export FBX Facial animation out from Unreal Level Sequencer
 * Select the "Face" Track
+  
 ![Screenshot](./images/1_anim_seq_export.png)
+
 * Bake Animation Sequence
 * Save File to a folder
+  
 ![Screenshot](./images/2_anim_seq_export_name.png)
+
 * Animation Sequence export options
+  
 ![Screenshot](./images/3_anim_seq_export_options.png)
+
 * Navigate to new Animation Sequence file and export FBX
+
 ![Screenshot](./images/4_anim_seq_export_file.png)
+
 * FBX Export options
+  
 ![Screenshot](./images/5_fbx_export_options.png)
 
 
