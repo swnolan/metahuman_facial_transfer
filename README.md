@@ -10,8 +10,7 @@ The referenced file is then removed once completed.
 ![Screenshot](./images/mh_to_maya.png)
 
 # Tutorial
-[![Tutorial](https://youtu.be/2sMULd2rPTs/0.jpg)](https://youtu.be/2sMULd2rPTs)
-
+[![Tutorial](https://img.youtube.com/vi/uw_gXGLq7d0/0.jpg)](https://youtu.be/uw_gXGLq7d0)
 
 # Reference links:
 * [Exporting a MetaHuman to Maya]( https://dev.epicgames.com/documentation/en-us/metahuman/exporting-metahumans-to-maya)
