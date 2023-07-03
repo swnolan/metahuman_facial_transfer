@@ -43,7 +43,6 @@ The referenced file is then removed once completed.
 
 # Install:
 * Download script and place somewehere in your MAYA_PYTHON_PATH or maya/scripts folder
-* Included in this project is a sample FBX file (metahuman_facial_example.fbx)
 
 # Usage:
 * Open/Reference/Import your Metahuman rig into the scene
