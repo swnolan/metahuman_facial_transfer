@@ -40,16 +40,25 @@ The referenced file is then removed once completed.
   
 ![Screenshot](./images/5_fbx_export_options.png)
 
+# Import Control Rig FBX Data from Maya
+* Right+Click the 'Face_ControlBoard_CtrlRig' track
+* Import FBX
+![Screenshot](./images/import_control_rig_fbx.png)
+![Screenshot](./images/import_fbx_control_rig.png)
+
 
 # Install:
-* Download script and place somewehere in your MAYA_PYTHON_PATH or maya/scripts folder
+* Download project
+* Drag and Drop install python file into Maya viewport 
+* This will install a Shelf and code into maya/scripts folder
+![Screenshot](./images/shelf_install.gif)
 
 # Usage:
 * Open/Reference/Import your Metahuman rig into the scene
-* Run Code in Maya Python Editor:
-```
-import metahuman_facial_transfer
-metahuman_facial_transfer.UI()
-```
+* Launch Tool 
+* Select Face control on Metahuman face rig
+* Hit 'Set Current Metahuman'
+* Import Animation Sequence Animation FBX from Unreal
+* Export Facial FBX back to Unreal
 
 Free to use personally or commercially. 
