@@ -7,6 +7,7 @@ import logging
 import time
 
 import pymel.core as pm
+import maya.cmds as cmds
 import pymel.versions
 
 logging.basicConfig(level=logging.DEBUG)
@@ -133,7 +134,7 @@ def show_wait_cursor(func):
 		finally:
 			pm.waitCursor(state=False)
 		return result
-	return wrapper
+	return wrapper 
 
 def load_plugin(plugin_name='fbxmaya'):
 	'''
@@ -256,7 +257,71 @@ def import_fbx_animation(fbx_path):
 	all_nodes = pm.ls()
 	new_nodes = [node for node in all_nodes if node not in cur_nodes]
 	return new_nodes
-	
+
+def export_fbx_animation(fbx_path, namespace=DEFAULT_NAMESPACE):
+	'''
+	Export fbx animation
+	Args:
+		fbx_path (str): absolute path to fbx animation
+		namespace (str): rig namespace
+	Returns:
+		(list of pm.nt.Transforms): list of exported controls
+	'''	
+	face_controls = get_face_controls(namespace)
+	if not face_controls:
+		return []
+
+	start_frame, end_frame = get_key_frame_ranges(face_controls)
+	pm.bakeResults(face_controls,
+				time=[int(start_frame), int(end_frame)],
+				preserveOutsideKeys=True,
+				minimizeRotation=False,
+				sparseAnimCurveBake=False,
+				sampleBy=1,
+				oversamplingRate=1,
+				bakeOnOverrideLayer=False,
+				removeBakedAttributeFromLayer=False,
+				removeBakedAnimFromLayer=False,
+				shape=False,
+				controlPoints=False,
+				disableImplicitControl=True)
+
+	pm.select(face_controls, replace=True)
+	current_namespace = face_controls[0].namespace()
+	controls = []
+	# Handle exporting control animation if in namespace
+	if current_namespace:
+		# Set to root namespace
+		pm.Namespace(':').setCurrent()
+		for control in face_controls:
+			control_name = str(control.stripNamespace())
+			dup_control = pm.duplicate(control, returnRootsOnly=True, inputConnections=True)[0]
+			# dup_control.setParent(None)
+			new_control = pm.rename(dup_control, control_name)
+			controls.append(new_control)
+		pm.select(controls, replace=True)
+	# Set it back to current namespace
+	pm.Namespace(current_namespace).setCurrent()
+	pm.mel.eval('FBXResetExport')  
+	pm.mel.eval('FBXExportAnimationOnly -v 1')
+	pm.mel.eval('FBXExportBakeComplexAnimation -v 0')
+	pm.mel.eval('FBXExportLights -v 0')
+	pm.mel.eval('FBXExportCameras -v 0')
+	pm.mel.eval('FBXExportConstraints -v 0')
+	pm.mel.eval('FBXExportSkins -v 0')
+	pm.mel.eval('FBXExportApplyConstantKeyReducer -v 0')
+	pm.mel.eval('FBXExportSmoothMesh -v 0')  
+	pm.mel.eval('FBXExportShapes -v 0')  
+	pm.mel.eval('FBXExportEmbeddedTextures -v 0')
+	pm.mel.eval('FBXExportInputConnections -v 0')
+	pm.mel.eval('FBXExportSplitAnimationIntoTakes -c') 
+	pm.mel.eval('FBXExportFileVersion -v FBX202000')
+	pm.mel.eval('FBXExportInAscii -v 0') # Binary
+	pm.mel.eval('FBXExport -f "{}" -s'.format(fbx_path))
+	if controls:
+		pm.delete(controls)
+	return face_controls
+
 def get_root_joint(joint_list):
 	'''
 	Get the root joint from joint list
@@ -280,10 +345,20 @@ def get_key_frame_range(node):
 	Returns:
 		tuple(float, float): start, end of keyframes
 	'''
-	start_frame = pm.findKeyframe(node, which='first')
-	end_frame = pm.findKeyframe(node, which='last')
-	return start_frame, end_frame
-	
+	return float(pm.findKeyframe(node, which='first')), float(pm.findKeyframe(node, which='last'))
+
+def get_key_frame_ranges(nodes):
+	'''
+	Get the min, max of start and end frames
+	'''	
+	start_frames = []
+	end_frames = []
+	for node in nodes:
+		start_frame, end_frame = get_key_frame_range(node)
+		start_frames.append(start_frame)
+		end_frames.append(end_frame)
+	return min(start_frames), max(end_frames)
+
 @show_wait_cursor
 def retarget_metahuman_animation_sequence(fbx_path, namespace=DEFAULT_NAMESPACE):
 	'''
@@ -342,60 +417,41 @@ def retarget_metahuman_animation_sequence(fbx_path, namespace=DEFAULT_NAMESPACE)
 	# Get the range of keys
 	start_frame, end_frame = get_key_frame_range(root_joint)
 	
-	utility_nodes = []
-	controls_to_bake = []
 	
-	# Making a live connection and retargeting FBX animation and face rig controls
+	# Take the mapping data and copy animaiton keys over to the proper control.channel
 	for controller in controllers:
 		for control_attr, expression_data in controller.control_mapping.items():
-			pma_node = pm.createNode('plusMinusAverage')
-			pma_node.operation.set(1)   # Add
-			utility_nodes.append(pma_node.name())
 			for index, (expression, driver_value) in enumerate(expression_data):
 				# Incoming anim data is 0-1 but is driven by controls that can
 				# move -1 to +1, so we're remapping the data as we go
 				if root_joint.hasAttr(expression):
 					# Control moves in the negative
 					if driver_value == -1.0:
-						mult_node = pm.createNode('multDoubleLinear')
-						utility_nodes.append(mult_node.name())
-						root_joint.attr(expression).connect(mult_node.input1)
-						mult_node.input2.set(-1.0)
-						mult_node.output.connect(pma_node.input1D[index])
+						# Get the anim curve and scale it by -1 
+						anim_curve = root_joint.attr(expression).inputs(type=pm.nt.AnimCurve)
+						if anim_curve:
+							pm.scaleKey(anim_curve[0], valueScale=-1.0)
+							copied = pm.copyKey(root_joint.attr(expression))
+							if copied:
+								try:
+									pm.pasteKey(control_attr)
+								except RuntimeError:
+									logger.error('Failed to paste keys to {}'.format(control_attr))
+						else:
+							logger.error('No animation curve for {}'.format(root_joint.attr(expression)))
 					# Control moves in the positive 
 					else:
-						root_joint.attr(expression).connect(pma_node.input1D[index])
+						copied = pm.copyKey(root_joint.attr(expression))
+						if copied:
+							try:
+								pm.pasteKey(control_attr)
+							except RuntimeError:
+								logger.error('Failed to paste keys to {}'.format(control_attr))
+						# root_joint.attr(expression).connect(pma_node.input1D[index])
 				else:
 					logger.warning('{} does not have {} in the name. This will be skipped!'.format(root_joint, expression))
-			
-			# Connect the plusMinusAverage node into the control attribute
-			pma_node.output1D.connect(control_attr, force=True)
-			controls_to_bake.append(controller.control)
 
-	# Bake controls and cleanup
-	pm.bakeResults(controls_to_bake,
-	               time=[int(start_frame), int(end_frame)],
-	               preserveOutsideKeys=True,
-	               minimizeRotation=False,
-	               sparseAnimCurveBake=False,
-	               sampleBy=1,
-	               oversamplingRate=1,
-	               bakeOnOverrideLayer=False,
-	               removeBakedAttributeFromLayer=False,
-	               removeBakedAnimFromLayer=False,
-	               shape=False,
-	               controlPoints=False,
-	               disableImplicitControl=True)
-	
-	# Show the ChannelBox instead Attribute Editor to get around showEditor.mel bug
-	pm.select(clear=True)
-	if not pm.about(batch=True):
-		pm.mel.eval("ToggleChannelsLayers;")
-		pm.mel.eval("setChannelsLayersVisible(true);")
-	
-	for node in utility_nodes:
-		if pm.objExists(node):
-			pm.delete(node)
+	# Clean up 	
 	pm.delete(new_nodes)
 
 	pm.playbackOptions(animationStartTime=int(start_frame), animationEndTime=int(end_frame))

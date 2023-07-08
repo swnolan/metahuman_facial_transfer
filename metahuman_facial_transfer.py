@@ -17,18 +17,16 @@
 #	* Leaving other options on will only increase file size
 #
 # Installation/Usage:
-#   * Place script anywhere in your MAYA_PYTHON_PATH or in Documents/maya/2020+/scripts folder
+#   * Use drag_and_drop_install.py and drop file into Maya viewport
 #   * Import, Reference or Open your Metahuman Maya file that has the face control board in the scene
-#   * Open up the Maya script editor (Python)
-#   * Select a control on the face rig and run code:
-#
-#   import metahuman_facial_transfer
-#   metahuman_facial_transfer.UI()
-# 	
+#   * Open up the Maya script editor (Python) 	
 # 	* Select anything on your Metahuman and click 'Set Current Metahuman'
 #   * Import FBX Animation Sequence (coming from Animation Sequence file)
 #       * This import type is most compatible
 #       * The Level Sequence version works as well but only certain years/cuts of Maya support it
+#   * Export Facial FBX
+#       * Save out FBX File
+#       * Open up Unreal and right+click on 'Face_ControlBoard_CtrlRig' track and import FBX in your level sequence
 
 
 import os
@@ -74,6 +72,8 @@ class UI(MayaQWidgetBaseMixin, QtWidgets.QWidget):
 		line_styles = ("QLineEdit{background-color: "
 		               "rgb(50, 50, 50); color: orange; solid black 1px:}")
 		
+		qbox_style = QtWidgets.QStyleFactory.create('Windows')
+		
 		main_layout = QtWidgets.QVBoxLayout()
 		bold_font = QtGui.QFont()
 		bold_font.setBold(True)
@@ -109,7 +109,9 @@ class UI(MayaQWidgetBaseMixin, QtWidgets.QWidget):
 		combo_layout.addWidget(set_mh_button)
 		combo_layout.addWidget(self.mh_name)
 		
-		button_layout = QtWidgets.QVBoxLayout()
+		import_box = QtWidgets.QGroupBox('Import Facial Animaton')
+		import_box.setStyle(qbox_style)
+		import_layout = QtWidgets.QVBoxLayout()
 		
 		import_anim_button = QtWidgets.QPushButton('Import FBX Animation Sequence File...')
 		import_anim_button.setToolTip('Navigate to FBX exported from Animation Sequence.\n'
@@ -125,6 +127,23 @@ class UI(MayaQWidgetBaseMixin, QtWidgets.QWidget):
 		import_level_button.setFont(bold_font)
 		import_level_button.clicked.connect(partial(self.import_metahuman_animation, 'level'))
 		
+		import_layout.addWidget(import_anim_button)
+		import_layout.addWidget(import_level_button)
+
+		export_box = QtWidgets.QGroupBox('Export Facial Animation')
+		export_box.setStyle(qbox_style)
+		export_layout = QtWidgets.QVBoxLayout()
+		export_button = QtWidgets.QPushButton('Export Facial FBX')
+		export_button.setToolTip('Export face control animation')
+		export_button.setStyleSheet(btn_styles)
+		export_button.setFont(bold_font)
+		export_button.clicked.connect(self.export_fbx)
+		export_box.setLayout(export_layout)
+		export_layout.addWidget(export_button)
+
+		control_box = QtWidgets.QGroupBox('Controls')
+		control_box.setStyle(qbox_style)
+		controls_layout = QtWidgets.QVBoxLayout()
 		reset_button = QtWidgets.QPushButton('Reset Facial Controls')
 		reset_button.setToolTip('Restores face controls to default position')
 		reset_button.setFont(bold_font)
@@ -136,20 +155,21 @@ class UI(MayaQWidgetBaseMixin, QtWidgets.QWidget):
 		select_button.setStyleSheet(btn_styles)
 		select_button.setFont(bold_font)
 		select_button.clicked.connect(self.select_face_controls)
-		
+		controls_layout.addWidget(reset_button)
+		controls_layout.addWidget(select_button)
+		control_box.setLayout(controls_layout)
+
 		close_button = QtWidgets.QPushButton('Close')
 		close_button.setStyleSheet(btn_styles)
 		close_button.setFont(bold_font)
 		close_button.clicked.connect(self.close)
 		
-		button_layout.addWidget(import_anim_button)
-		button_layout.addWidget(import_level_button)
-		button_layout.addWidget(reset_button)
-		button_layout.addWidget(select_button)
-		button_layout.addWidget(close_button)
-		
+		import_box.setLayout(import_layout)
 		main_layout.addLayout(combo_layout)
-		main_layout.addLayout(button_layout)
+		main_layout.addWidget(import_box)
+		main_layout.addWidget(export_box)
+		main_layout.addWidget(control_box)
+		main_layout.addWidget(close_button)
 		main_layout.addStretch()
 		self.setLayout(main_layout)
 		
@@ -163,6 +183,28 @@ class UI(MayaQWidgetBaseMixin, QtWidgets.QWidget):
 	def closeEvent(self, event):
 		event.accept()
 	
+	def export_fbx(self):
+		''' Export FBX Animation '''
+		if self._current_mh_name is None:
+			msg_box = QtWidgets.QMessageBox()
+			msg_box.setWindowTitle("Metahuman: Selection Error")
+			msg_box.setText("Missing selection!\nSelect any thing on your Metahuman\nClick 'Set Current Metahuman'")
+			msg_box.setIcon(QtWidgets.QMessageBox.Critical)
+			msg_box.exec_()
+			return
+				
+		file_path = pm.fileDialog2(fileFilter='(*.fbx)', dialogStyle=1, caption='Export FBX Animation')
+		if file_path:
+			# Strip namespace before export and then restore
+
+			results = mh_api.export_fbx_animation(file_path[0], self._current_namespace)
+			if results:
+				msg_box = QtWidgets.QMessageBox()
+				msg_box.setWindowTitle("Export Completed")
+				msg_box.setText('Export Completed!')
+				msg_box.setIcon(QtWidgets.QMessageBox.Information)
+				msg_box.exec_()
+
 	def _set_metahuman_name(self):
 		''' Set the Metahuman name and current namespace '''
 		selected = pm.selected()
@@ -189,6 +231,7 @@ class UI(MayaQWidgetBaseMixin, QtWidgets.QWidget):
 		self._current_mh_name = file_name[0]
 		self.mh_name.setText(self._current_mh_name)
 		self._current_namespace = embedded_node.namespace()
+		pm.Namespace(embedded_node.namespace()).setCurrent()
 	
 	def import_metahuman_animation(self, transfer_type):
 		'''
@@ -317,7 +360,7 @@ Unreal Exporting Instructions:
       + Choose 'Face_ControlBoard_CtrlRig'
       + Use Default settings -> Create
       + Right-Click on Face Track -> 'Export'
-      * Export Settings:
+      + Export Settings:
         - FBX Export Compatibility: 2020
         - Export Morph Targets: True
         - Export Preview Mesh: True
@@ -329,6 +372,23 @@ Importing FBX data:
     * Click the 'Set Current Metahuman' and your character name
       will appear in the field
     * Choose which Import type to bring in
+    * Animation Sequence: 
+       + This is the most compatible but will take longer to process
+    * Level Sequence:
+      + Least compatible but is faster to apply
+
+Exporting FBX data:
+    * Select anything on your Metahuman character
+    * Click the 'Set Current Metahuman' and your character name
+      will appear in the field
+    * Navigate to a folder and name export file
+    * In Unreal:
+      + Open Level Sequence
+      + Right-Click 'Face_ControlBoard_CtrlRig' track
+      + 'Import Control Rig FBX'
+      + Set Control Mapping to 'Metahuman Control Mapping'
+
+Controls:
     * Reset Facial Controls
       + Will reset all the controls to a default position
     * Select Facial Controls

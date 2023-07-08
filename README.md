@@ -1,9 +1,10 @@
 # Metahuman Facial Transfer
 
 
-Maya Python code that will reference in previously exported FBX animation from Unreal.
-The code will copy these attribute keys from the referenced transform node over to the Metahuman Face board controls.
-The referenced file is then removed once completed.
+Maya Python code that will import previously exported FBX animation from Unreal onto face control animation in Maya.
+The code will copy these attribute keys from the imported node over to the Metahuman Face board controls.
+The imported data is removed after transfer.
+Update animation and export back to Unreal. 
 
 ### Newly updated to Support Unreal 4.27-5.2 & Maya 2020-2023
 
@@ -32,17 +33,27 @@ The referenced file is then removed once completed.
 * FBX Export options
 ![Screenshot](./images/5_fbx_export_options.png)
 
+# Import Control Board FBX Animation from Maya
+* Select the 'Face_ControlBoard_CtrlRig track'
+* Right-Click and 'Import Control Rig FBX'
+* Navigate to FBX to import animation
+![Screenshot](./images/import_control_rig_fbx.png)
+* Set Control Mapping to 'Metahuman Control Mapping'
+![Screenshot](./images/import_fbx_control_rig.png)
+* Import
+
 
 # Install:
-* Download script and place somewehere in your MAYA_PYTHON_PATH or maya/scripts folder
-* Included in this project is a sample FBX file (metahuman_facial_example.fbx)
+* Download Code and open up folder
+* Drag and drop install file into viewport to install tool and shelf
+![Screenshot](./images/shelf_install.gif)
 
 # Usage:
 * Open/Reference/Import your Metahuman rig into the scene
-* Run Code in Maya Python Editor:
-```
-import metahuman_facial_transfer
-metahuman_facial_transfer.UI()
-```
+* Launch Tool
+* Select any face control on the control board
+* Click 'Set Current Metahuman' button
+* Import Animation or Level Sequence Animation FBX file
+* Export FBX
 
 Free to use personally or commercially. 
