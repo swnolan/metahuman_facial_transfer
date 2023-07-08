@@ -1,5 +1,8 @@
 import os
-import pymel.core as pm
+try:
+	import pymel.core as pm
+except:
+	raise ImportError("Must have PyMEL installed. Update your Maya installation to include this.")
 import maya.mel as mm
 import shutil
 import sys

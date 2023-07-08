@@ -5,6 +5,8 @@ Maya Python code that will reference in previously exported FBX animation from U
 The code will copy these attribute keys from the referenced transform node over to the Metahuman Face board controls.
 The referenced file is then removed once completed.
 
+### Requires PyMEL to be included as one of your Maya installed components
+
 ### Newly updated to Support Unreal 4.27-5.2 & Maya 2020-2023
 
 ![Screenshot](./images/mh_to_maya.png)

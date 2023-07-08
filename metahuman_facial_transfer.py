@@ -37,7 +37,10 @@ from PySide2 import QtCore
 from PySide2 import QtGui
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
 
-import pymel.core as pm
+try:
+	import pymel.core as pm
+except:
+	raise ImportError("Must have PyMEL installed. Update your Maya installation to include this.")
 
 import metahuman_api as mh_api
 

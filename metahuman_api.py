@@ -6,7 +6,10 @@ from functools import wraps
 import logging
 import time
 
-import pymel.core as pm
+try:
+	import pymel.core as pm
+except:
+	raise ImportError("Must have PyMEL installed. Update your Maya installation to include this.")
 import maya.cmds as cmds
 import pymel.versions
 
