@@ -253,13 +253,14 @@ def import_fbx_animation(fbx_path):
 	# Import animation
 	pm.mel.FBXImportShapes(v=False)
 	pm.mel.FBXImportSkins(v=False)
+	pm.mel.FBXImportMode(v='add')
 	pm.mel.FBXImportMergeAnimationLayers(v=False)
+	pm.mel.FBXImportProtectDrivenKeys(v=True)
+	pm.mel.FBXImportSetMayaFrameRate(v=False)
 	
 	cur_nodes = pm.ls()
 	pm.mel.FBXImport(file=fbx_path, take=1)
-	all_nodes = pm.ls()
-	new_nodes = [node for node in all_nodes if node not in cur_nodes]
-	return new_nodes
+	return set(pm.ls()) - set(cur_nodes)
 
 def export_fbx_animation(fbx_path, namespace=DEFAULT_NAMESPACE):
 	'''
@@ -299,27 +300,25 @@ def export_fbx_animation(fbx_path, namespace=DEFAULT_NAMESPACE):
 		for control in face_controls:
 			control_name = str(control.stripNamespace())
 			dup_control = pm.duplicate(control, returnRootsOnly=True, inputConnections=True)[0]
-			# dup_control.setParent(None)
 			new_control = pm.rename(dup_control, control_name)
 			controls.append(new_control)
 		pm.select(controls, replace=True)
 	# Set it back to current namespace
 	pm.Namespace(current_namespace).setCurrent()
-	pm.mel.eval('FBXResetExport')  
-	pm.mel.eval('FBXExportAnimationOnly -v 1')
-	pm.mel.eval('FBXExportBakeComplexAnimation -v 0')
-	pm.mel.eval('FBXExportLights -v 0')
-	pm.mel.eval('FBXExportCameras -v 0')
-	pm.mel.eval('FBXExportConstraints -v 0')
-	pm.mel.eval('FBXExportSkins -v 0')
-	pm.mel.eval('FBXExportApplyConstantKeyReducer -v 0')
-	pm.mel.eval('FBXExportSmoothMesh -v 0')  
-	pm.mel.eval('FBXExportShapes -v 0')  
-	pm.mel.eval('FBXExportEmbeddedTextures -v 0')
-	pm.mel.eval('FBXExportInputConnections -v 0')
-	pm.mel.eval('FBXExportSplitAnimationIntoTakes -c') 
-	pm.mel.eval('FBXExportFileVersion -v FBX202000')
-	pm.mel.eval('FBXExportInAscii -v 0') # Binary
+	pm.mel.FBXResetExport()
+	pm.mel.FBXExportAnimationOnly(v=True)
+	pm.mel.FBXExportBakeComplexAnimation(v=False)
+	pm.mel.FBXExportLights(v=False)
+	pm.mel.FBXExportCameras(v=False)
+	pm.mel.FBXExportConstraints(v=False)
+	pm.mel.FBXExportSkins(v=False)
+	pm.mel.FBXExportApplyConstantKeyReducer(v=False)
+	pm.mel.FBXExportSmoothMesh(v=False)
+	pm.mel.FBXExportShapes(v=False)
+	pm.mel.FBXExportEmbeddedTextures(v=False)
+	pm.mel.FBXExportInputConnections(v=False)
+	pm.mel.FBXExportFileVersion(v='FBX202000')
+	pm.mel.FBXExport(file=fbx_path, s=True)
 	pm.mel.eval('FBXExport -f "{}" -s'.format(fbx_path))
 	if controls:
 		pm.delete(controls)
@@ -395,11 +394,11 @@ def retarget_metahuman_animation_sequence(fbx_path, namespace=DEFAULT_NAMESPACE)
 	if error:
 		return elapsed_time, error
 	
-	# Set to 24 fps
-	# Change to 'ntsc' if your Level Sequence is 30fps
-	pm.currentUnit(time='film')
-	
 	new_nodes = import_fbx_animation(fbx_path)
+
+	# 30fps
+	pm.currentUnit(time='ntsc')
+
 	# Check if animCurves came in
 	anim_curves = pm.ls(new_nodes, type=pm.nt.AnimCurve)
 	if not anim_curves:
@@ -420,8 +419,7 @@ def retarget_metahuman_animation_sequence(fbx_path, namespace=DEFAULT_NAMESPACE)
 	# Get the range of keys
 	start_frame, end_frame = get_key_frame_range(root_joint)
 	
-	
-	# Take the mapping data and copy animaiton keys over to the proper control.channel
+	# Take the mapping data and copy animation keys over to the proper control.channel
 	for controller in controllers:
 		for control_attr, expression_data in controller.control_mapping.items():
 			for index, (expression, driver_value) in enumerate(expression_data):
@@ -450,7 +448,6 @@ def retarget_metahuman_animation_sequence(fbx_path, namespace=DEFAULT_NAMESPACE)
 								pm.pasteKey(control_attr)
 							except RuntimeError:
 								logger.error('Failed to paste keys to {}'.format(control_attr))
-						# root_joint.attr(expression).connect(pma_node.input1D[index])
 				else:
 					logger.warning('{} does not have {} in the name. This will be skipped!'.format(root_joint, expression))
 
