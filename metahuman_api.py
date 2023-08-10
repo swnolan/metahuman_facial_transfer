@@ -420,38 +420,64 @@ def retarget_metahuman_animation_sequence(fbx_path, namespace=DEFAULT_NAMESPACE)
 	start_frame, end_frame = get_key_frame_range(root_joint)
 	
 	# Take the mapping data and copy animation keys over to the proper control.channel
+	blend_weighted_nodes = []
+	controls_attrs_to_bake = []
 	for controller in controllers:
 		for control_attr, expression_data in controller.control_mapping.items():
-			for index, (expression, driver_value) in enumerate(expression_data):
-				# Incoming anim data is 0-1 but is driven by controls that can
-				# move -1 to +1, so we're remapping the data as we go
-				if root_joint.hasAttr(expression):
-					# Control moves in the negative
-					if driver_value == -1.0:
-						# Get the anim curve and scale it by -1 
+
+			# Connect control channel that has more than one anim curve driving it
+			if len(expression_data) > 1:
+				anim_curves = []
+				for index, (expression, driver_value) in enumerate(expression_data):				
+					if root_joint.hasAttr(expression):
 						anim_curve = root_joint.attr(expression).inputs(type=pm.nt.AnimCurve)
 						if anim_curve:
-							pm.scaleKey(anim_curve[0], valueScale=-1.0)
+							# Control moves in the negative
+							if driver_value == -1.0:
+								# Get the anim curve and scale it by -1 
+								pm.scaleKey(anim_curve[0], valueScale=-1.0)
+						else:
+							logger.error('No animation curve for {}'.format(root_joint.attr(expression)))
+						
+						anim_curves.append(anim_curve[0])
+					else:
+						logger.warning('{} does not have {} in the name. This will be skipped!'.format(root_joint, expression))
+				
+				# Connect anim curves
+				bw_node = pm.createNode('blendWeighted')
+				for i, anim_curve in enumerate(anim_curves):
+					anim_curve.output.connect(bw_node.input[i])
+				bw_node.output.connect(control_attr)
+				controls_attrs_to_bake.append(control_attr)
+			else:
+				for index, (expression, driver_value) in enumerate(expression_data):
+					if root_joint.hasAttr(expression):
+						anim_curve = root_joint.attr(expression).inputs(type=pm.nt.AnimCurve)
+						if anim_curve:
 							copied = pm.copyKey(root_joint.attr(expression))
 							if copied:
 								try:
 									pm.pasteKey(control_attr)
 								except RuntimeError:
 									logger.error('Failed to paste keys to {}'.format(control_attr))
-						else:
-							logger.error('No animation curve for {}'.format(root_joint.attr(expression)))
-					# Control moves in the positive 
 					else:
-						copied = pm.copyKey(root_joint.attr(expression))
-						if copied:
-							try:
-								pm.pasteKey(control_attr)
-							except RuntimeError:
-								logger.error('Failed to paste keys to {}'.format(control_attr))
-				else:
-					logger.warning('{} does not have {} in the name. This will be skipped!'.format(root_joint, expression))
-
-	# Clean up 	
+						logger.warning('{} does not have {} in the name. This will be skipped!'.format(root_joint, expression))
+	
+	# Bake controls
+	pm.bakeResults(controls_attrs_to_bake, 
+					time=[int(start_frame), int(end_frame)], 
+					preserveOutsideKeys=True, 
+					sparseAnimCurveBake=False,
+					sampleBy=1, 
+					oversamplingRate=1,
+					removeBakedAttributeFromLayer=False, 
+					removeBakedAnimFromLayer=False,
+					shape=False, 
+					controlPoints=False, 
+					disableImplicitControl=True)
+				
+	# Clean up
+	pm.delete(blend_weighted_nodes) 	
 	pm.delete(new_nodes)
 
 	pm.playbackOptions(animationStartTime=int(start_frame), animationEndTime=int(end_frame))
