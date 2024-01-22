@@ -362,7 +362,7 @@ def get_key_frame_ranges(nodes):
 	return min(start_frames), max(end_frames)
 
 @show_wait_cursor
-def retarget_metahuman_animation_sequence(fbx_path, namespace=DEFAULT_NAMESPACE):
+def retarget_metahuman_animation_sequence(fbx_path, namespace=DEFAULT_NAMESPACE, timeunit='ntsc'):
 	'''
 	Imports the fbx animation into the scene and connects the curve data to the control rig.
 	Then will bake the animation on the controls and clean up the scene
@@ -379,6 +379,7 @@ def retarget_metahuman_animation_sequence(fbx_path, namespace=DEFAULT_NAMESPACE)
 	Args:
 		fbx_path (str): absolute path to fbx animation
 		namespace (str): rig namespace, so we can gather all the controls
+  		timeunit (str): time unit to set the scene to. Default is 'ntsc' for 30fps
 
 	Returns:
 		tuple(str, str): elapsed time to complete, error message
@@ -396,8 +397,7 @@ def retarget_metahuman_animation_sequence(fbx_path, namespace=DEFAULT_NAMESPACE)
 	
 	new_nodes = import_fbx_animation(fbx_path)
 
-	# 30fps
-	pm.currentUnit(time='ntsc')
+	pm.currentUnit(time=timeunit)
 
 	# Check if animCurves came in
 	anim_curves = pm.ls(new_nodes, type=pm.nt.AnimCurve)
@@ -488,7 +488,7 @@ def retarget_metahuman_animation_sequence(fbx_path, namespace=DEFAULT_NAMESPACE)
 	return elapsed_time, error_msg
 
 
-def retarget_metahuman_level_sequence(fbx_path, namespace=DEFAULT_NAMESPACE):
+def retarget_metahuman_level_sequence(fbx_path, namespace=DEFAULT_NAMESPACE, timeunit='film'):
 	'''
 	This currently is only supported in Maya 2022.4, 2022.5 and 2023.3
 
@@ -500,6 +500,7 @@ def retarget_metahuman_level_sequence(fbx_path, namespace=DEFAULT_NAMESPACE):
 	Args:
 		fbx_path (str): path to exported FBX file from Unreal
 		namespace (str): current namespace
+  		timeunit (str): time unit to set the scene to. Default is 'film' for 24fps
 	Returns:
 		tuple(str, str): elapsed time to complete, error message
 	'''
@@ -514,9 +515,7 @@ def retarget_metahuman_level_sequence(fbx_path, namespace=DEFAULT_NAMESPACE):
 		error_msg = 'This version (year.cut) of Maya is not currently supported: {}'.format(pymel.versions.current())
 		return elapsed_time, error_msg
 
-	# Set to 24 fps
-	# Change to 'ntsc' if your Level Sequence is 30fps
-	pm.currentUnit(time='film')
+	pm.currentUnit(time=timeunit)
 	
 	nodes = pm.createReference(fbx_path, namespace=':', returnNewNodes=True)
 	reference_file = None
