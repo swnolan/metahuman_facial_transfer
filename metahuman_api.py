@@ -24,7 +24,12 @@ ZERO_OUT_EXCLUDED_CONTROLS = ['CTRL_eyesAimFollowHead',
                               'CTRL_neckCorrectivesMultiplyerU',
                               'CTRL_neckCorrectivesMultiplyerM',
                               'CTRL_neckCorrectivesMultiplyerD',
-                              'CTRL_faceGUI'
+                              'CTRL_faceGUI',
+                              'CTRL_GUIswitch',
+                              'CTRL_L_mouth_lipsPressD',
+                              'CTRL_R_mouth_lipsPressD',
+                              'CTRL_expressions',
+                              'CTRL_rigLogic'
                               ]
 
 EXCLUDED_RETARGET_CONTROLS = ['CTRL_C_eye',
@@ -352,13 +357,13 @@ def get_key_frame_range(node):
 def get_key_frame_ranges(nodes):
 	'''
 	Get the min, max of start and end frames
-	'''	
-	start_frames = []
-	end_frames = []
-	for node in nodes:
-		start_frame, end_frame = get_key_frame_range(node)
-		start_frames.append(start_frame)
-		end_frames.append(end_frame)
+	Args:
+        nodes (list of pm.nt.DagNode): list of nodes with keys
+    Returns:
+    	tuple(float, float): start, end of keyframes
+	'''
+	start_frames = [get_key_frame_range(node)[0] for node in nodes]
+	end_frames = [get_key_frame_range(node)[1] for node in nodes]
 	return min(start_frames), max(end_frames)
 
 @show_wait_cursor
@@ -581,7 +586,7 @@ def retarget_metahuman_level_sequence(fbx_path, namespace=DEFAULT_NAMESPACE, tim
 	for driver_attr, (control_name, channel) in keyed_attributes.items():
 		if pm.objExists(control_name):
 			driven_attr = pm.Attribute('{}.{}'.format(control_name, channel))
-			if driven_attr.isFreeToChange() == pm.Attribute.FreeToChangeState.freeToChange:
+			if driven_attr.isFreeToChange() == pm.Attribute.FreeToChangeState.freeToChange and not driven_attr.isLocked():
 				copied = pm.copyKey(driver_attr)
 				if copied:
 					try:
