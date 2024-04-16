@@ -37,9 +37,22 @@ def onMayaDroppedPythonFile(*args):
 			os.path.exists(os.path.join(shelf_dir, 'shelf_Metahuman.mel')):
 			updated = True
 		
-		shutil.copy(api_file, scripts_folder)
-		shutil.copy(mh_file, scripts_folder)
-		shutil.copy(mel_file, shelf_dir)
+		try:
+			shutil.copy(api_file, scripts_folder)
+		except shutil.SameFileError:
+			print(f'{api_file} is identical to {scripts_folder}\{api_file}\nSkipping...')
+			pass
+		try:
+			shutil.copy(mh_file, scripts_folder)
+		except shutil.SameFileError:
+			print(f'{mh_file} is identical to {scripts_folder}\{mh_file}\nSkipping...')
+			pass
+		try:
+			shutil.copy(mel_file, shelf_dir)
+		except shutil.SameFileError:
+			print(f'{mel_file} is identical to {shelf_dir}\{mel_file}\nSkipping...')
+			pass
+		
 		# Load shelf if doesn't exist
 		if not pm.shelfLayout('Metahuman', query=True, exists=True):
 			mm.eval('loadNewShelf("{}")'.format(shelf_file))
