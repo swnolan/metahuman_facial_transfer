@@ -40,17 +40,17 @@ def onMayaDroppedPythonFile(*args):
 		try:
 			shutil.copy(api_file, scripts_folder)
 		except shutil.SameFileError:
-			print(f'{api_file} is identical to {scripts_folder}\{api_file}\nSkipping...')
+			print('{} is identical to {}\{}\nSkipping...'.format(api_file, scripts_folder, api_file))
 			pass
 		try:
 			shutil.copy(mh_file, scripts_folder)
 		except shutil.SameFileError:
-			print(f'{mh_file} is identical to {scripts_folder}\{mh_file}\nSkipping...')
+			print('{} is identical to {}\{}\nSkipping...'.format(mh_file, scripts_folder, mh_file))
 			pass
 		try:
 			shutil.copy(mel_file, shelf_dir)
 		except shutil.SameFileError:
-			print(f'{mel_file} is identical to {shelf_dir}\{mel_file}\nSkipping...')
+			print('{} is identical to {}\{}\nSkipping...'.format(mel_file, shelf_file, mel_file))
 			pass
 		
 		# Load shelf if doesn't exist
