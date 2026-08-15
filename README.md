@@ -5,11 +5,51 @@ Maya Python code that will reference in previously exported FBX animation from U
 The code will copy these attribute keys from the referenced transform node over to the Metahuman Face board controls.
 The referenced file is then removed once completed.
 
-### Requires PyMEL to be included as one of your Maya installed components
+## 2.0 — PyMEL removed
 
-### Newly updated to Support Unreal 4.27-5.2 & Maya 2020-2023
+Version 2.0 removes the hard PyMEL dependency entirely; the tool now runs on
+`maya.cmds`/`maya.mel` only. 
+
+**Supported range:** Maya 2023 through 2027 (Python 3.9-3.13, PySide2/Qt5 on
+2023-2024, PySide6/Qt6 on 2025+). (2024 untested — no install was available
+during development; expected to work, same PySide2/Qt5 path as 2023.)
+
+**Breaking API change:** functions that used to return PyMEL `PyNode`/`Attribute`
+objects now return plain strings (long DAG paths / `node.attr` plug strings):
+
+- `get_face_controls()` → `list[str]`
+- `get_root_joint()` → `str | None`
+- `export_fbx_animation()` → `list[str]`
+- `Controller.control_mapping` → `dict[str, list[[str, float]]]` keyed on plug strings
+
+If you have external scripts calling into `metahuman_api.py` directly (rather
+than through the shelf button / UI), update them accordingly.
+
+**Other behavior change:** retargeting a rig where no control has multiple
+FBX-driving expressions no longer crashes (a pre-existing crash in the
+original PyMEL code, which called `bakeResults([])` unconditionally and threw
+`TypeError: Not enough objects for this command` in that case); it now
+completes normally with nothing baked onto that control.
+
+**UI Updates:**
+The single-file Import buttons are now a queued, multi-FBX table:
+- Choose **Animation Sequence** or **Level Sequence** with a radio button instead of two separate buttons
+- **Add/Remove/Clear** build a queue of FBX files (the same file can be added more than once to repeat a clip and extend the timeline)
+- **Start Frame**, **Gap**, **Take**, and **FPS** controls; Animation Sequence clips are merged and laid end to end starting at Start Frame, while Level Sequence files are each imported independently
+- The table previews Take/Start/End/Frames per row before you run anything, and reports per-row status (Merged/Skipped/Imported/error) after
+- New UI theme
+![Screenshot](./images/ui_v2.png)
+
+Still on an older Maya without this fix? The pre-2.0 PyMEL-based version is
+preserved at the [`v1.0-pymel`](../../releases/tag/v1.0-pymel) tag.
+
+### Supports Unreal 4.27-5.7+ & Maya 2023-2027
 
 ![Screenshot](./images/mh_to_maya.png)
+
+![Screenshot](./images/mh_to_maya.gif)
+
+
 
 # Tutorial
 [![Tutorial](https://img.youtube.com/vi/uw_gXGLq7d0/0.jpg)](https://youtu.be/uw_gXGLq7d0)

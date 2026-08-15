@@ -1,9 +1,5 @@
 import os
-
-try:
-	import pymel.core as pm
-except:
-	raise ImportError("Must have PyMEL installed. Update your Maya installation to include this.")
+import maya.cmds as cmds
 import maya.mel as mm
 import shutil
 import sys
@@ -19,16 +15,21 @@ def onMayaDroppedPythonFile(*args):
 	api_file = os.path.join(cur_path, 'metahuman_api.py')
 	mh_file = os.path.join(cur_path, 'metahuman_facial_transfer.py')
 	mel_file = os.path.join(cur_path, 'shelf_Metahuman.mel')
+	icons_dir = os.path.join(cur_path, 'icons')
 	
-	scripts_folder = pm.internalVar(userScriptDir=True)
-	shelf_dir = pm.internalVar(userShelfDir=True)
+	scripts_folder = cmds.internalVar(userScriptDir=True)
+	shelf_dir = cmds.internalVar(userShelfDir=True)
+	if ';' in shelf_dir:
+		candidates = [p for p in shelf_dir.split(';') if p]
+		prefs_candidates = [p for p in candidates if 'prefs' in p.replace('\\', '/').lower()]
+		shelf_dir = prefs_candidates[0] if prefs_candidates else candidates[0]
 	shelf_file = os.path.join(shelf_dir, 'shelf_Metahuman.mel').replace('\\', '/')
-	result = pm.confirmDialog(title='Install Metahuman Transfer Tool',
-	                          message='Installing Tool to:\n{}\n\nContinue?'.format(scripts_folder),
-	                          button=['Continue', 'Cancel'],
-	                          defaultButton='Continue',
-	                          cancelButton='Cancel',
-	                          dismissString='Cancel')
+	result = cmds.confirmDialog(title='Install Metahuman Transfer Tool',
+	                            message='Installing Tool to:\n{}\n\nContinue?'.format(scripts_folder),
+	                            button=['Continue', 'Cancel'],
+	                            defaultButton='Continue',
+	                            cancelButton='Cancel',
+	                            dismissString='Cancel')
 	if result == 'Continue':
 		# Copy files and load shelf
 		updated = False
@@ -40,25 +41,35 @@ def onMayaDroppedPythonFile(*args):
 		try:
 			shutil.copy(api_file, scripts_folder)
 		except shutil.SameFileError:
-			print('{} is identical to {}\{}\nSkipping...'.format(api_file, scripts_folder, api_file))
+			print('{} is identical to {}\nSkipping...'.format(api_file, os.path.join(scripts_folder, os.path.basename(api_file))))
 			pass
 		try:
 			shutil.copy(mh_file, scripts_folder)
 		except shutil.SameFileError:
-			print('{} is identical to {}\{}\nSkipping...'.format(mh_file, scripts_folder, mh_file))
+			print('{} is identical to {}\nSkipping...'.format(mh_file, os.path.join(scripts_folder, os.path.basename(mh_file))))
 			pass
 		try:
 			shutil.copy(mel_file, shelf_dir)
 		except shutil.SameFileError:
-			print('{} is identical to {}\{}\nSkipping...'.format(mel_file, shelf_file, mel_file))
+			print('{} is identical to {}\nSkipping...'.format(mel_file, shelf_file))
 			pass
-		
+
+		if os.path.isdir(icons_dir):
+			icons_dst = os.path.join(scripts_folder, 'icons')
+			if not os.path.isdir(icons_dst):
+				os.makedirs(icons_dst)
+			for icon_name in os.listdir(icons_dir):
+				try:
+					shutil.copy(os.path.join(icons_dir, icon_name), icons_dst)
+				except shutil.SameFileError:
+					pass
+
 		# Load shelf if doesn't exist
-		if not pm.shelfLayout('Metahuman', query=True, exists=True):
+		if not cmds.shelfLayout('Metahuman', query=True, exists=True):
 			mm.eval('loadNewShelf("{}")'.format(shelf_file))
 		if not updated:
-			pm.confirmDialog(title='Installed', message='Installed!\nClick on new shelf button to launch tool.',
-			                 button=['Okay'], defaultButton='Okay')
+			cmds.confirmDialog(title='Installed', message='Installed!\nClick on new shelf button to launch tool.',
+			                   button=['Okay'], defaultButton='Okay')
 		else:
-			pm.confirmDialog(title='Install Updated', message='Files Update!\t\t\t\nRestart Maya!',
-			                 button=['Okay'], defaultButton='Okay')
+			cmds.confirmDialog(title='Install Updated', message='Files Update!\t\t\t\nRestart Maya!',
+			                   button=['Okay'], defaultButton='Okay')
