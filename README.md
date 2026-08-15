@@ -5,6 +5,10 @@ Maya Python code that will reference in previously exported FBX animation from U
 The code will copy these attribute keys from the referenced transform node over to the Metahuman Face board controls.
 The referenced file is then removed once completed.
 
+## Tip Jar
+If you find this project helpful, buying me a coffee shows your appreciation
+[buymeacoffee.com/SeanNolan](https://buymeacoffee.com/seannolan)
+
 ## 2.0 — PyMEL removed
 
 Version 2.0 removes the hard PyMEL dependency entirely; the tool now runs on
